@@ -9,11 +9,15 @@ type UserData = {
 type UserStore = {
     user: UserData,
     setUser: (user: UserData) => void;
+    clearUser: () => void;
 }
 
 export const useUserStore = create<UserStore>((set) => ({
-    user: { id: "", name: "" , token: ""},
+    user: { id: "", name: "", token: "" },
     setUser: (user) => set(() => ({
         user
+    })),
+    clearUser: ()=>set(()=>({
+        user: { id: "", name: "", token: "" }
     }))
 }))

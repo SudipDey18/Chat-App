@@ -1,10 +1,10 @@
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Pressable, ActivityIndicator } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { askOtp, updateProfile, verifyOtp } from '@/Api/api'
 import { useUserStore } from '@/store/userStore'
-// import { useContactsStore } from '@/store/contactsStore'
+import Toast from 'react-native-toast-message'
 
 const Login = () => {
     const router = useRouter()
@@ -20,20 +20,26 @@ const Login = () => {
     const [errorMessage, setErrorMessage] = useState("");
 
     const setUserData = useUserStore(s => s.setUser);
-    // const setAllContacts = useContactsStore(s => s.addAllContacts);
+
 
     const handleSendOtp = async () => {
         if (mobileNo.length !== 10) {
-            Alert.alert('Error', 'Please enter a valid 10-digit mobile number')
+            Toast.show({
+                type: 'error',
+                text1: `Please enter a valid 10-digit mobile number`,
+            });
             return
         }
 
         try {
             setLoading(true);
             const apiRes = await askOtp(mobileNo);
-            // console.log(apiRes);
 
-            Alert.alert('OTP sent to:', mobileNo);
+            Toast.show({
+                type: 'success',
+                text1: "OTP sent successfully",
+            });
+
             setStep('otp');
             setLoading(false);
             setResendTimer(180);
@@ -54,7 +60,10 @@ const Login = () => {
             setLoading(false);
             console.log(error);
 
-            Alert.alert("!error", error?.message || "Something went wrong")
+            Toast.show({
+                type: 'error',
+                text1: `${error?.message || "Something went wrong"}`,
+            });
         }
     }
 
@@ -93,10 +102,12 @@ const Login = () => {
     };
 
     const handleVerifyOtp = async () => {
-        // console.log(otp);
 
         if (otp.length !== 4) {
-            Alert.alert('Error', 'Please enter 4-digit OTP')
+            Toast.show({
+                type: 'error',
+                text1: `Enter valid 4 digit OTP.`,
+            });
             return
         }
         try {
@@ -104,14 +115,18 @@ const Login = () => {
             const apiRes = await verifyOtp(mobileNo, otp);
 
             if (apiRes.verified) {
+
+                Toast.show({
+                    type: 'success',
+                    text1: "OTP verified successfully",
+                });
+
                 setLoading(false);
                 setContactLoading(true);
                 setUserData({ id: apiRes.userId, name: apiRes.name, token: apiRes.token });
                 await AsyncStorage.setItem('token', apiRes.token);
                 await AsyncStorage.setItem('userId', apiRes.userId);
                 await AsyncStorage.setItem('name', apiRes.name);
-                // const contactRes = await getContacts();
-                // setAllContacts(contactRes.rooms);
                 router.replace('/contacts');
             } else {
                 setLoading(false);

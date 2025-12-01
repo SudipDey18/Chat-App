@@ -1,8 +1,10 @@
 import { View, StatusBar, StyleSheet } from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import Contacts from '@/components/myComp/Contacts'
+import { router } from 'expo-router'
 
-const index = () => {
+const contacts = () => {
+
     return (
         <View style={style.maindiv}>
             <StatusBar hidden={false} />
@@ -17,4 +19,4 @@ const style = StyleSheet.create({
     }
 })
 
-export default index
+export default contacts

@@ -58,7 +58,7 @@ const Contacts = () => {
                     <Text style={styles.searchPlaceholder}>Search contacts...</Text>
                 </Pressable>
 
-                <Pressable style={styles.profileButton}>
+                <Pressable style={styles.profileButton} onPress={()=>router.push('/logout')}>
                     <Image
                         source={{ uri: `https://avatar.iran.liara.run/public/boy?username=${loginUserName}` }}
                         style={styles.profileAvatar}

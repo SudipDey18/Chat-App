@@ -1,7 +1,7 @@
 import { useMessagesStore } from "@/store/messageStore";
 import { useRoomStore } from "@/store/roomStore";
 import { useUserStore } from "@/store/userStore";
-import { Toast } from 'toastify-react-native'
+import Toast from 'react-native-toast-message';
 
 type sender = {
     "_id": string;
@@ -39,10 +39,13 @@ export const newMessageHandel = async (data: message) => {
                     return item
                 }
             }));
-        }else{
-            addMessage({_id,createdAt,message,reciver,sender});
+        } else {
+            addMessage({ _id, createdAt, message, reciver, sender });
         }
-    }else{
-        Toast.success(`New message Recived from ${sender.name}`);
+    } else {
+        Toast.show({
+            type: 'success',
+            text1: `New message Recived from ${sender.name}`,
+        });
     }
 }

@@ -3,10 +3,11 @@ import { useLocalSearchParams } from 'expo-router';
 import Messages from '@/components/myComp/Messages';
 import { getMessages } from '@/Api/api';
 import { Alert, Text, View, ActivityIndicator, StatusBar } from 'react-native';
+import Header from '@/components/myComp/Header';
 
 type sender = {
-  "_id": string;
-  "name": string;
+    "_id": string;
+    "name": string;
 }
 
 type message = {
@@ -51,7 +52,10 @@ const ChatScreen = () => {
                     <Text>Loading messages...</Text>
                 </View>
             ) : (
-                <Messages chatMessages={messages} />
+                <>
+                    <Header />
+                    <Messages chatMessages={messages} />
+                </>
             )}
         </View>
     );

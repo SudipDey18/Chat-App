@@ -1,10 +1,11 @@
-import { Text, StyleSheet, View, FlatList, Image, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, Keyboard, ImageBackground } from 'react-native'
-import React, { useState, useCallback } from 'react'
+import { Text, StyleSheet, View, FlatList, Image, TextInput, TouchableOpacity, Platform, Keyboard, ImageBackground, KeyboardAvoidingView, Animated } from 'react-native'
+import React, { useState, useCallback, useRef } from 'react'
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { socket } from '@/socket/socket';
 import { useRoomStore } from '@/store/roomStore';
 import { useUserStore } from '@/store/userStore';
 import { useMessagesStore } from '@/store/messageStore';
+import { useKeyboardOffset } from '@/hooks/useKeyboardOffset';
 
 type sender = {
   "_id": string;
@@ -32,18 +33,10 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
   useFocusEffect(
     useCallback(() => {
       setMessages(chatMessages);
-
-      const showListener = Keyboard.addListener("keyboardDidShow", () => setKeyboardVisible(true));
-      const hideListener = Keyboard.addListener("keyboardDidHide", () => setKeyboardVisible(false));
-
       return () => {
         setRoomData({ reciverId: "", reciverName: "", roomId: "" });
-
-        // clean listeners
-        showListener.remove();
-        hideListener.remove();
       };
-    }, [chatMessages])
+    }, [])
   );
 
   const handleSendMessage = async () => {
@@ -125,15 +118,14 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
     )
   }
 
-  const showSendButton = messageText.trim() !== ''
+  const showSendButton = messageText.trim() !== '';
+  const keyboardOffset = useRef(new Animated.Value(0)).current;
+
+  useKeyboardOffset(keyboardOffset);
 
   return (
-    <KeyboardAvoidingView
-      style={styles.mainContainer}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      keyboardVerticalOffset={keyboardVisible ? 90 : 0}
-    >
-      <ImageBackground source={require('../../assets/images/bg.png')} style={styles.mainContainer} imageStyle={{ opacity: 0.8 }}>
+    <Animated.View style={{ flex: 1, paddingBottom: keyboardOffset }}>
+      <ImageBackground source={require('../../assets/images/bg.png')} style={styles.backgroundImage} imageStyle={{ opacity: 0.8 }}>
         <FlatList
           data={messages}
           renderItem={renderMessage}
@@ -162,7 +154,7 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
           )}
         </View>
       </ImageBackground>
-    </KeyboardAvoidingView>
+    </Animated.View>
   )
 }
 
@@ -226,7 +218,7 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     padding: 10,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
     alignItems: 'center',
   },
   textInput: {

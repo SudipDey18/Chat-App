@@ -1,23 +1,24 @@
-import { View, Text, StatusBar, StyleSheet } from 'react-native'
-import React from 'react'
-import Messages from '@/components/myComp/Messages'
-import Contacts from '@/components/myComp/Contacts'
+import { useUserStore } from '@/store/userStore'
+import { router } from 'expo-router';
+import { useEffect } from 'react';
+import { ActivityIndicator, Text, View } from 'react-native';
 
 
 const index = () => {
+    const userToken = useUserStore(s => s.user.token);
+
+    useEffect(() => {
+        if (userToken) {
+            router.replace('/contacts');
+        }
+    }, [userToken])
+
     return (
-        <View style={style.maindiv}>
-            <StatusBar hidden={false} />
-            {/* <Messages /> */}
-            {/* <Contacts/> */}
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+            <ActivityIndicator size="large" />
+            <Text>Please wait...</Text>
         </View>
     )
 }
-
-const style = StyleSheet.create({
-    maindiv: {
-        flex: 1
-    }
-})
 
 export default index
