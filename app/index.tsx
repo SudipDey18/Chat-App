@@ -1,17 +1,32 @@
-import { useUserStore } from '@/store/userStore'
-import { router } from 'expo-router';
-import { useEffect } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Redirect,} from 'expo-router';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
 
 
 const index = () => {
-    const userToken = useUserStore(s => s.user.token);
+    const [route, setRoute] = useState<string | null>(null)
+
+    const initialSetup = async () => {
+        const token = await AsyncStorage.getItem("token");
+
+        if (token) {
+            setRoute("token");
+        } else {
+            setRoute("noToken");
+        }
+    }
 
     useEffect(() => {
-        if (userToken) {
-            router.replace('/contacts');
-        }
-    }, [userToken])
+        initialSetup();
+    }, [])
+
+    if (route == "token") {
+        return <Redirect href="/contacts" />;
+    }
+    if (route == "noToken") {
+        return <Redirect href="/Login" />;
+    }
 
     return (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>

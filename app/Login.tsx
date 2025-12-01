@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Pressable, ActivityIndicator } from 'react-native'
+import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Pressable, ActivityIndicator, BackHandler } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useRouter } from 'expo-router'
 import AsyncStorage from '@react-native-async-storage/async-storage'
@@ -18,9 +18,33 @@ const Login = () => {
     const [resendTimer, setResendTimer] = useState(0); // in seconds
     const [canResend, setCanResend] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
+    const [exit, setExit] = useState(false);
 
     const setUserData = useUserStore(s => s.setUser);
 
+    useEffect(() => {
+
+
+
+        const backButton = BackHandler.addEventListener("hardwareBackPress", () => {
+            if (exit) {
+                BackHandler.exitApp();
+            } else {
+                setExit(true);
+
+                setTimeout(() => {
+                    setExit(false);
+                }, 4000);
+
+                Toast.show({
+                    type: 'info',
+                    text1: `Press again to exit`,
+                });
+            }
+            return true
+        });
+        return () => backButton.remove();
+    }, [exit])
 
     const handleSendOtp = async () => {
         if (mobileNo.length !== 10) {
@@ -191,6 +215,7 @@ const Login = () => {
 
                                 <TextInput
                                     style={styles.input}
+                                    placeholderTextColor={"808080"}
                                     placeholder="Mobile Number"
                                     keyboardType="numeric"
                                     maxLength={10}
@@ -213,6 +238,7 @@ const Login = () => {
                                 <TextInput
                                     style={styles.otpInput}
                                     placeholder="Enter OTP"
+                                    placeholderTextColor={"808080"}
                                     keyboardType="numeric"
                                     maxLength={6}
                                     value={otp}
@@ -255,6 +281,7 @@ const Login = () => {
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Enter your name"
+                                        placeholderTextColor={"808080"}
                                         value={name}
                                         onChangeText={setName}
                                     />
@@ -276,6 +303,7 @@ const Login = () => {
                                         <TextInput
                                             style={[styles.input, styles.usernameInput]}
                                             placeholder="username"
+                                            placeholderTextColor={"808080"}
                                             value={username}
                                             onChangeText={setUsername}
                                             autoCapitalize="none"
@@ -340,7 +368,8 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         padding: 15,
         fontSize: 16,
-        backgroundColor: '#fff'
+        backgroundColor: '#fff',
+        color: "black"
     },
     otpInput: {
         borderWidth: 1,
@@ -349,7 +378,8 @@ const styles = StyleSheet.create({
         padding: 20,
         fontSize: 24,
         backgroundColor: '#fff',
-        marginBottom: 20
+        marginBottom: 20,
+        color: "black"
     },
     button: {
         backgroundColor: '#007AFF',
@@ -400,7 +430,8 @@ const styles = StyleSheet.create({
     usernameInput: {
         flex: 1,
         borderWidth: 0,
-        paddingLeft: 0
+        paddingLeft: 0,
+        color: "black"
     },
     resendButton: {
         marginTop: 15,

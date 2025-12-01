@@ -228,7 +228,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 10,
     fontSize: 16,
-    maxHeight: 100
+    maxHeight: 100,
+    color: "black"
   },
   sendButton: {
     backgroundColor: '#007AFF',

@@ -130,10 +130,10 @@ export default function RootLayout() {
         } catch (error) {
           console.error("❌ Failed to load contacts:", error);
         }
-        router.replace('/contacts');
+        // router.replace('/contacts');
       } else {
         console.log('🔄 No token, redirecting to login');
-        router.replace('/Login');
+        // router.replace('/Login');
       }
     } catch (error) {
       console.error('❌ Error in initialLoding:', error);
