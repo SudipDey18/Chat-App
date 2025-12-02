@@ -2,6 +2,7 @@ import { useMessagesStore } from "@/store/messageStore";
 import { useRoomStore } from "@/store/roomStore";
 import { useUserStore } from "@/store/userStore";
 import Toast from 'react-native-toast-message';
+import * as Notifications from "expo-notifications";
 
 type sender = {
     "_id": string;
@@ -47,5 +48,14 @@ export const newMessageHandel = async (data: message) => {
             type: 'success',
             text1: `New message Recived from ${sender.name}`,
         });
+
+        await Notifications.scheduleNotificationAsync({
+            content: {
+                title: "You've got message! 💬",
+                body: `Message Recived from ${sender.name}`,
+            },
+            trigger: null,
+        });
+
     }
 }

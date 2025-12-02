@@ -1,4 +1,4 @@
-import { Text, StyleSheet, View, FlatList, Image, TextInput, TouchableOpacity, Platform, Keyboard, ImageBackground, KeyboardAvoidingView, Animated } from 'react-native'
+import { Text, StyleSheet, View, FlatList, Image, TextInput, TouchableOpacity, ImageBackground, Animated } from 'react-native'
 import React, { useState, useCallback, useRef } from 'react'
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { socket } from '@/socket/socket';
@@ -23,7 +23,6 @@ type message = {
 export default function Messages({ chatMessages }: { chatMessages: message[] }) {
   const { id } = useLocalSearchParams();
   const [messageText, setMessageText] = useState('')
-  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const roomData = useRoomStore(s => s.room);
   const setRoomData = useRoomStore(s => s.setRoom);
   const loginUser = useUserStore(s => s.user);
@@ -213,6 +212,7 @@ const styles = StyleSheet.create({
   timestamp: {
     fontSize: 10,
     marginTop: 4,
+    color: "#383838ff",
     opacity: 0.7
   },
   inputContainer: {

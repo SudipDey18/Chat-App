@@ -13,8 +13,18 @@ import { newMessageHandel } from '@/socket/messageHandeler';
 import { useUserStore } from '@/store/userStore';
 import Toast from 'react-native-toast-message';
 import { newRoomHandel } from '@/socket/roomHandeler';
-import { View, Text, StyleSheet, ScrollView, Button } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Button, Alert } from 'react-native';
 import { toastConfig } from '@/components/myComp/TostaConfig';
+import * as Notifications from "expo-notifications";
+import {
+  getMessaging,
+  getToken,
+  onMessage,
+  getInitialNotification,
+  onNotificationOpenedApp,
+  requestPermission,
+  AuthorizationStatus
+} from '@react-native-firebase/messaging';
 
 
 export { ErrorBoundary } from 'expo-router';
@@ -48,6 +58,15 @@ type ErrorBoundaryState = {
   error: Error | null;
   errorInfo: any;
 };
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowList: true,
+  }),
+});
 
 
 // Custom ErrorBoundary Component
@@ -144,12 +163,37 @@ export default function RootLayout() {
     }
   }
 
+  const requestUserPermission = async () => {
+    try {
+      const messaging = getMessaging();
+
+      const authStatus = await requestPermission(messaging);
+
+      const enabled =
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        console.log("📌 Authorization status:", authStatus);
+        return true;
+      } else {
+        console.log("❌ Permission not granted:", authStatus);
+        return false;
+      }
+
+    } catch (error) {
+      console.log("🔥 Permission error:", error);
+      return false;
+    }
+  };
+
   const connectSocket = async () => {
     try {
       let token = await AsyncStorage.getItem("token");
+      let fcmToken = await AsyncStorage.getItem("fcmToken");
 
       if (token) {
-        socket.auth = { token };
+        socket.auth = { token, fcmToken };
         socket.connect();
 
         socket.on("connect", () => {
@@ -171,6 +215,46 @@ export default function RootLayout() {
       await initialLoding();
     }
   }
+
+  useEffect(() => {
+    const messaging = getMessaging();
+    let unsubscribeMessage: (() => void) | undefined;
+
+    const initFCM = async () => {
+      const permission = await requestUserPermission();
+
+      if (permission) {
+        const token = await getToken(messaging);
+        AsyncStorage.setItem("fcmToken", token);
+        console.log("📱 FCM Token:", token);
+      }
+
+      // Foreground messages
+      unsubscribeMessage = onMessage(messaging, async (remoteMessage) => {
+        Alert.alert("New Message", JSON.stringify(remoteMessage));
+      });
+
+      // App opened from quit
+      const initial = await getInitialNotification(messaging);
+      if (initial) {
+        console.log("App opened from quit:", initial.notification);
+      }
+
+      // App opened from background
+      onNotificationOpenedApp(messaging, (remoteMessage) => {
+        console.log("App opened from background:", remoteMessage.notification);
+      });
+    };
+
+    initFCM();
+
+    // Cleanup
+    return () => {
+      if (unsubscribeMessage) unsubscribeMessage();
+    };
+  }, []);
+
+
 
   useEffect(() => {
     connectSocket();
@@ -200,7 +284,7 @@ function RootLayoutNav() {
       <SafeAreaView style={{ flex: 1 }}>
         <StatusBar hidden />
         <Stack screenOptions={{ headerShown: false }} />
-        <Toast config={toastConfig} /> 
+        <Toast config={toastConfig} />
       </SafeAreaView>
     </ThemeProvider>
   );
