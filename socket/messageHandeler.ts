@@ -44,18 +44,23 @@ export const newMessageHandel = async (data: message) => {
             addMessage({ _id, createdAt, message, reciver, sender });
         }
     } else {
-        Toast.show({
-            type: 'success',
-            text1: `New message Recived from ${sender.name}`,
-        });
-
-        await Notifications.scheduleNotificationAsync({
-            content: {
-                title: "You've got message! 💬",
-                body: `Message Recived from ${sender.name}`,
-            },
-            trigger: null,
-        });
+        // Toast.show({
+        //     type: 'success',
+        //     text1: `New message Recived from ${sender.name}`,
+        // });
+        if(sender._id != loginUserId){
+            await Notifications.scheduleNotificationAsync({
+                content: {
+                    title: "You've got message! 💬",
+                    body: `Message Recived from ${sender.name}`,
+                    data: {
+                        id: sender._id,
+                        newMessage: true
+                    }
+                },
+                trigger: null,
+            });
+        }
 
     }
 }
