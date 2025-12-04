@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/images/AppIcons/playstore.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#FCFAF6"
     },
     "ios": {
       "supportsTablet": true,
@@ -33,7 +33,8 @@
       "favicon": "./assets/images/AppIcons/playstore.png"
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      "expo-secure-store"
     ],
     "experiments": {
       "typedRoutes": true

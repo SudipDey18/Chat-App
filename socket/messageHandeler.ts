@@ -15,12 +15,13 @@ type message = {
     sender: sender;
     roomId: string,
     reciver: string;
-    message: string;
+    reciverMsg: string;
+    senderMsg: string;
     createdAt: string;
 }
 
 export const newMessageHandel = async (data: message) => {
-    const { _id, message, reciver, sender, createdAt, oldId } = data;
+    const { _id, reciver, sender, createdAt, oldId, reciverMsg, senderMsg } = data;
     const room = useRoomStore.getState().room;
     const updateMessages = useMessagesStore.getState().setAllMessages;
     const addMessage = useMessagesStore.getState().setMessages;
@@ -41,14 +42,14 @@ export const newMessageHandel = async (data: message) => {
                 }
             }));
         } else {
-            addMessage({ _id, createdAt, message, reciver, sender });
+            addMessage({ _id, createdAt, reciverMsg, senderMsg, reciver, sender });
         }
     } else {
         // Toast.show({
         //     type: 'success',
         //     text1: `New message Recived from ${sender.name}`,
         // });
-        if(sender._id != loginUserId){
+        if (sender._id != loginUserId) {
             await Notifications.scheduleNotificationAsync({
                 content: {
                     title: "You've got message! 💬",

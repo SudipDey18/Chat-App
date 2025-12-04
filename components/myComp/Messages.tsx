@@ -1,11 +1,13 @@
 import { Text, StyleSheet, View, FlatList, Image, TextInput, TouchableOpacity, ImageBackground, Animated } from 'react-native'
-import React, { useState, useCallback, useRef } from 'react'
+import React, { useState, useCallback, useRef, useEffect } from 'react'
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { socket } from '@/socket/socket';
 import { useRoomStore } from '@/store/roomStore';
 import { useUserStore } from '@/store/userStore';
 import { useMessagesStore } from '@/store/messageStore';
 import { useKeyboardOffset } from '@/hooks/useKeyboardOffset';
+import { RSA } from 'react-native-rsa-native';
+import { RenderMessage } from './RenderMessage';
 
 type sender = {
   "_id": string;
@@ -16,7 +18,8 @@ type message = {
   _id: string;
   sender: sender;
   reciver: string;
-  message: string;
+  senderMsg: string;
+  reciverMsg: string;
   createdAt: string;
 }
 
@@ -33,7 +36,7 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
     useCallback(() => {
       setMessages(chatMessages);
       return () => {
-        setRoomData({ reciverId: "", reciverName: "", roomId: "" });
+        setRoomData({ reciverId: "", reciverName: "", roomId: "", publicKey: "" });
       };
     }, [])
   );
@@ -42,10 +45,18 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
     if (messageText.trim() === '') return;
 
     const tempId = Date.now();
+    const senderMsg = await RSA.encrypt(messageText, loginUser.publicKey);
+    const reciverMsg = await RSA.encrypt(messageText, roomData.publicKey);
+
+    if (!senderMsg && !reciverMsg) {
+
+      return
+    }
 
     const tempMessage: message = {
       _id: tempId.toString(),
-      message: messageText,
+      senderMsg,
+      reciverMsg,
       createdAt: new Date().toISOString(),
       reciver: id.toString(),
       sender: {
@@ -60,7 +71,8 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
     socket.emit('sendMessage', {
       _id: tempId,
       roomId: roomData.roomId,
-      message: messageText,
+      senderMsg,
+      reciverMsg,
       reciver: id,
       sender: {
         _id: loginUser.id,
@@ -72,50 +84,7 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
         // console.log('Message sent successfully');
       }
     });
-
   };
-
-
-  const renderMessage = ({ item }: { item: message }) => {
-    const isCurrentUser = loginUser.id === item.sender._id
-
-
-    return (
-      <View style={[
-        styles.messageContainer,
-        isCurrentUser ? styles.rightMessage : styles.leftMessage
-      ]} >
-        {!isCurrentUser && (
-          <Image
-            source={{ uri: `https://avatar.iran.liara.run/public/boy?username=${item.sender.name}` }}
-            style={styles.avatar}
-          />
-        )}
-
-        <View style={[
-          styles.messageBubble,
-          isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble
-        ]}>
-          <Text style={[
-            styles.messageText,
-            isCurrentUser ? styles.currentUserText : styles.otherUserText
-          ]}>
-            {item.message}
-          </Text>
-          <Text style={styles.timestamp}>
-            {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </Text>
-        </View>
-
-        {isCurrentUser && (
-          <Image
-            source={{ uri: `https://avatar.iran.liara.run/public/boy?username=${item.sender.name}` }}
-            style={styles.avatar}
-          />
-        )}
-      </View>
-    )
-  }
 
   const showSendButton = messageText.trim() !== '';
   const keyboardOffset = useRef(new Animated.Value(0)).current;
@@ -127,7 +96,7 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
       <ImageBackground source={require('../../assets/images/bg.png')} style={styles.backgroundImage} imageStyle={{ opacity: 0.8 }}>
         <FlatList
           data={messages}
-          renderItem={renderMessage}
+          renderItem={({ item }) => <RenderMessage item={item} />}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
           inverted

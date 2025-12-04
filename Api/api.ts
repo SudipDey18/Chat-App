@@ -37,8 +37,8 @@ export function verifyOtp(mobileNo: string, otp: string) {
     return request("/api/user/verifyotp", "PUT", { mobileNo, otp });
 }
 
-export function updateProfile(mobileNo: string, name: string, username: string) {
-    return request("/api/user/updateprofile", "PUT", { mobileNo, name, username });
+export function updateProfile(mobileNo: string, name: string, username: string, publicKey:string) {
+    return request("/api/user/updateprofile", "PUT", { mobileNo, name, username,publicKey });
 }
 
 export function getContacts() {

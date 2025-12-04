@@ -1,5 +1,4 @@
 import { StyleSheet, Text, View, FlatList, Image, TouchableOpacity, Pressable } from 'react-native'
-import React, { useEffect } from 'react'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useContactsStore } from '@/store/contactsStore';
@@ -9,6 +8,7 @@ import { useUserStore } from '@/store/userStore';
 type Participant = {
     _id: string;
     name: string;
+    publicKey: string;
 };
 
 type Contact = {
@@ -27,8 +27,8 @@ const Contacts = () => {
     const renderContact = ({ item }: { item: Contact }) => {
         const participant = item.participants;
 
-        const handelClickContact = async () => {
-            setRoom({ reciverId: participant[0]._id, roomId: item._id, reciverName: item.participants[0].name })
+        const handelClickContact = async () => {         
+            setRoom({ reciverId: participant[0]._id, roomId: item._id, reciverName: item.participants[0].name, publicKey: item.participants[0].publicKey })
             router.push(`/(chat)/${participant[0]._id}`);
         }
 

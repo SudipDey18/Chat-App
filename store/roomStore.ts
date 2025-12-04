@@ -4,6 +4,7 @@ type RoomData = {
     roomId: string;
     reciverId: string;
     reciverName: string;
+    publicKey: string;
 }
 
 type RoomStore = {
@@ -13,7 +14,7 @@ type RoomStore = {
 }
 
 export const useRoomStore = create<RoomStore>((set) => ({
-    room: { reciverId: "", roomId: "", reciverName: "" },
+    room: { reciverId: "", roomId: "", reciverName: "", publicKey: "" },
     setRoom: (room) => set(() => ({
         room
     })),

@@ -3,6 +3,7 @@ import { create } from 'zustand'
 type Participant = {
     _id: string;
     name: string;
+    publicKey: string;
 };
 
 type Contact = {

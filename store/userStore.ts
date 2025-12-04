@@ -4,6 +4,8 @@ type UserData = {
     id: string;
     name: string;
     token: string;
+    publicKey: string;
+    privateKey: string;
 };
 
 type UserStore = {
@@ -13,11 +15,11 @@ type UserStore = {
 }
 
 export const useUserStore = create<UserStore>((set) => ({
-    user: { id: "", name: "", token: "" },
+    user: { id: "", name: "", token: "", publicKey: "", privateKey: "" },
     setUser: (user) => set(() => ({
         user
     })),
     clearUser: ()=>set(()=>({
-        user: { id: "", name: "", token: "" }
+        user: { id: "", name: "", token: "", publicKey: "", privateKey: "" }
     }))
 }))

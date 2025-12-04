@@ -5,10 +5,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage'
 import { askOtp, updateProfile, verifyOtp } from '@/Api/api'
 import { useUserStore } from '@/store/userStore'
 import Toast from 'react-native-toast-message'
+import { generateKeyPair } from '@/helper/encryption'
+import * as SecureStore from 'expo-secure-store';
+import { FontAwesome6 } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 
 const Login = () => {
     const router = useRouter()
-    const [step, setStep] = useState('mobile'); // 'mobile', 'otp', 'profile'
+    const [step, setStep] = useState('mobile'); // 'mobile', 'otp', 'profile', 'key'
     const [mobileNo, setMobileNo] = useState('');
     const [otp, setOtp] = useState('');
     const [name, setName] = useState('');
@@ -19,13 +23,11 @@ const Login = () => {
     const [canResend, setCanResend] = useState(false);
     const [errorMessage, setErrorMessage] = useState("");
     const [exit, setExit] = useState(false);
+    const [key, setKey] = useState('');
 
     const setUserData = useUserStore(s => s.setUser);
 
     useEffect(() => {
-
-
-
         const backButton = BackHandler.addEventListener("hardwareBackPress", () => {
             if (exit) {
                 BackHandler.exitApp();
@@ -147,10 +149,12 @@ const Login = () => {
 
                 setLoading(false);
                 setContactLoading(true);
-                setUserData({ id: apiRes.userId, name: apiRes.name, token: apiRes.token });
+                const privateKey = await SecureStore.getItemAsync('privateKey');
+                setUserData({ id: apiRes.userId, name: apiRes.name, token: apiRes.token, privateKey: privateKey || "", publicKey: apiRes.publicKey });
                 await AsyncStorage.setItem('token', apiRes.token);
                 await AsyncStorage.setItem('userId', apiRes.userId);
                 await AsyncStorage.setItem('name', apiRes.name);
+                await AsyncStorage.setItem('publicKey', apiRes.publicKey);
                 router.replace('/contacts');
             } else {
                 setLoading(false);
@@ -177,21 +181,39 @@ const Login = () => {
             setErrorMessage('Space not allowed in username');
             return
         }
+
         setLoading(true);
 
         try {
             setErrorMessage('');
-            const apiRes = await updateProfile(mobileNo, name, username.trim());
+            const keys = await generateKeyPair();
+            const apiRes = await updateProfile(mobileNo, name, username.trim(), keys.publicKey);
 
-            setUserData({ id: apiRes.userId, name: apiRes.name, token: apiRes.token });
+            setUserData({ id: apiRes.userId, name: apiRes.name, token: apiRes.token, publicKey: keys.publicKey, privateKey: keys.privateKey });
             await AsyncStorage.setItem('token', apiRes.token);
             await AsyncStorage.setItem('userId', apiRes.userId);
             await AsyncStorage.setItem('name', apiRes.name);
-            router.replace('/contacts');
+            await AsyncStorage.setItem('publicKey', keys.publicKey);
+            await SecureStore.setItemAsync('privateKey', keys.privateKey);
+            setKey(keys.privateKey);
+            setStep('key');
+
+            // router.replace('/contacts');
         } catch (error: any) {
-            setLoading(false);
             setErrorMessage(error?.message || "Something went wrong")
+        } finally {
+            setLoading(false);
         }
+    }
+
+    const copyCode = async () => {
+
+        await Clipboard.setStringAsync(key);
+
+        Toast.show({
+            type: 'success',
+            text1: "Key copy successfully.",
+        });
     }
 
     return (
@@ -205,7 +227,7 @@ const Login = () => {
                     <Text>Loading Contacts...</Text>
                 </View>
             ) : (
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+                <ScrollView contentContainerStyle={styles.scrollContent} nestedScrollEnabled showsHorizontalScrollIndicator={false}>
                     <View style={styles.card}>
                         {/* Mobile Number Step */}
                         {step === 'mobile' && (
@@ -268,7 +290,6 @@ const Login = () => {
                             </>
                         )}
 
-
                         {/* Profile Completion Step */}
                         {step === 'profile' && (
                             <>
@@ -316,6 +337,43 @@ const Login = () => {
                                 </TouchableOpacity>
                             </>
                         )}
+
+                        {/* key save step */}
+                        {step === 'key' && (
+                            <>
+                                <Text style={styles.title}>Save Key</Text>
+                                <Text style={styles.subtitle}>Save your key for login into another device.</Text>
+
+                                <ScrollView
+                                    nestedScrollEnabled
+                                    style={{ maxHeight: 120, borderWidth: 1, borderColor: '#ddd', borderRadius: 10 }}
+                                    contentContainerStyle={styles.keyBox}
+                                >
+                                    {/* <View style={styles.keyBox}> */}
+                                    <Text
+                                        style={{
+                                            fontSize: 13,
+                                            fontWeight: 'bold',
+                                            flexShrink: 0,
+                                            width: 'auto'
+                                        }}
+                                    >
+                                        {key}
+                                    </Text>
+                                    {/* </View> */}
+                                </ScrollView>
+
+                                <TouchableOpacity onPress={copyCode} style={styles.copyButton}>
+                                    <FontAwesome6 name='copy' size={22} color='black' />
+                                    <Text style={{ color: 'black', fontSize: 18, fontWeight: '600'}}>Copy</Text>
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.button} onPress={() => router.replace('/contacts')} disabled={loading}>
+                                    <Text style={styles.buttonText}>Continue</Text>
+                                </TouchableOpacity>
+
+                            </>
+                        )}
+
                     </View>
                 </ScrollView>
             )}
@@ -371,6 +429,16 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         color: "black"
     },
+    keyBox: {
+        padding: 15,
+        fontSize: 16,
+        backgroundColor: '#fff',
+        color: "black",
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between'
+    },
     otpInput: {
         borderWidth: 1,
         borderColor: '#ddd',
@@ -387,6 +455,16 @@ const styles = StyleSheet.create({
         padding: 15,
         alignItems: 'center',
         marginTop: 10,
+    },
+    copyButton: {
+        backgroundColor: '#0aab45ff',
+        borderRadius: 10,
+        padding: 15,
+        alignItems: 'center',
+        marginTop: 25,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 4
     },
     buttonText: {
         color: '#fff',

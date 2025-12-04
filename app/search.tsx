@@ -10,6 +10,7 @@ import { useUserStore } from '@/store/userStore';
 type Participant = {
     _id: string;
     name: string;
+    publicKey: string;
 };
 
 type Contact = {
@@ -75,7 +76,7 @@ export default function SearchPage() {
     };
 
     const handleSelectUser = async (user: Participant) => {
-        setRoom({ reciverId: user._id, roomId: "", reciverName: user.name })
+        setRoom({ reciverId: user._id, roomId: "", reciverName: user.name, publicKey: user.publicKey })
         router.push(`/(chat)/${user._id}`);
 
     };

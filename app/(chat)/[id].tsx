@@ -11,11 +11,12 @@ type sender = {
 }
 
 type message = {
-    _id: string;
-    sender: sender;
-    reciver: string;
-    message: string;
-    createdAt: string;
+  _id: string;
+  sender: sender;
+  reciver: string;
+  senderMsg: string;
+  reciverMsg: string;
+  createdAt: string;
 }
 
 type apiRes = {

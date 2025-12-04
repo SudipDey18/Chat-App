@@ -1,9 +1,7 @@
 import {RSA} from 'react-native-rsa-native'
 
 export async function generateKeyPair() {
-  try {
-    console.log('🔑 Generating RSA key pair...');
-    
+  try {    
     const keys = await RSA.generateKeys(2048);
     
     console.log('✅ Keys generated successfully');

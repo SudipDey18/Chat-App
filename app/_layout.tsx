@@ -16,14 +16,13 @@ import { newRoomHandel } from '@/socket/roomHandeler';
 import { View, Text, StyleSheet, ScrollView, Button, Alert, PermissionsAndroid, Platform } from 'react-native';
 import { toastConfig } from '@/components/myComp/TostaConfig';
 import * as Notifications from "expo-notifications";
+import * as SecureStore from 'expo-secure-store';
 import {
   getMessaging,
   getToken,
   onMessage,
   getInitialNotification,
   onNotificationOpenedApp,
-  requestPermission,
-  AuthorizationStatus
 } from '@react-native-firebase/messaging';
 
 
@@ -132,11 +131,14 @@ export default function RootLayout() {
       let token = await AsyncStorage.getItem("token") || "";
       let id = await AsyncStorage.getItem('userId') || "";
       let name = await AsyncStorage.getItem('name') || "";
+      let publicKey = await AsyncStorage.getItem('publicKey') || "";
+      let privateKey = await SecureStore.getItemAsync('privateKey') || "";
+
 
       console.log('🔑 Token loaded:', token ? 'Present' : 'Missing');
 
       if (!userToken) {
-        setUserData({ id, name, token });
+        setUserData({ id, name, token, publicKey, privateKey });
       }
 
       if (token) {
@@ -295,8 +297,6 @@ export default function RootLayout() {
       sub.remove();
     };
   }, [rootNavigationState?.key]);
-
-
 
 
   useEffect(() => {
