@@ -149,13 +149,19 @@ const Login = () => {
 
                 setLoading(false);
                 setContactLoading(true);
+                // console.log(await SecureStore.setItemAsync('privateKey', p_key));
                 const privateKey = await SecureStore.getItemAsync('privateKey');
+                console.log("🔑 key: ", privateKey);
                 setUserData({ id: apiRes.userId, name: apiRes.name, token: apiRes.token, privateKey: privateKey || "", publicKey: apiRes.publicKey });
                 await AsyncStorage.setItem('token', apiRes.token);
                 await AsyncStorage.setItem('userId', apiRes.userId);
                 await AsyncStorage.setItem('name', apiRes.name);
                 await AsyncStorage.setItem('publicKey', apiRes.publicKey);
-                router.replace('/contacts');
+                if (privateKey) {
+                    router.replace('/contacts');
+                } else {
+                    router.replace('/addKey');
+                }
             } else {
                 setLoading(false);
                 setStep('profile');
@@ -365,7 +371,7 @@ const Login = () => {
 
                                 <TouchableOpacity onPress={copyCode} style={styles.copyButton}>
                                     <FontAwesome6 name='copy' size={22} color='black' />
-                                    <Text style={{ color: 'black', fontSize: 18, fontWeight: '600'}}>Copy</Text>
+                                    <Text style={{ color: 'black', fontSize: 18, fontWeight: '600' }}>Copy</Text>
                                 </TouchableOpacity>
                                 <TouchableOpacity style={styles.button} onPress={() => router.replace('/contacts')} disabled={loading}>
                                     <Text style={styles.buttonText}>Continue</Text>

@@ -1,7 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Redirect,} from 'expo-router';
+import { Redirect, } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Text, View } from 'react-native';
+import * as SecureStore from 'expo-secure-store';
 
 
 const index = () => {
@@ -9,9 +10,10 @@ const index = () => {
 
     const initialSetup = async () => {
         const token = await AsyncStorage.getItem("token");
+        const privateKey = await SecureStore.getItemAsync('privateKey');
 
         if (token) {
-            setRoute("token");
+            privateKey ? setRoute("token") : setRoute("addToken");
         } else {
             setRoute("noToken");
         }
@@ -21,6 +23,9 @@ const index = () => {
         initialSetup();
     }, [])
 
+    if (route == "addToken") {
+        return <Redirect href="/addKey" />;
+    }
     if (route == "token") {
         return <Redirect href="/contacts" />;
     }

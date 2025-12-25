@@ -11,6 +11,7 @@ type UserData = {
 type UserStore = {
     user: UserData,
     setUser: (user: UserData) => void;
+    setUserPrivateKey: (key: string) => void;
     clearUser: () => void;
 }
 
@@ -19,7 +20,10 @@ export const useUserStore = create<UserStore>((set) => ({
     setUser: (user) => set(() => ({
         user
     })),
-    clearUser: ()=>set(()=>({
+    setUserPrivateKey: (key) => set((prev) => ({
+        user: { ...prev.user, privateKey: key }
+    })),
+    clearUser: () => set(() => ({
         user: { id: "", name: "", token: "", publicKey: "", privateKey: "" }
     }))
 }))

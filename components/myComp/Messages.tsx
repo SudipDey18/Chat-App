@@ -49,7 +49,6 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
     const reciverMsg = await RSA.encrypt(messageText, roomData.publicKey);
 
     if (!senderMsg && !reciverMsg) {
-
       return
     }
 
