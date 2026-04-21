@@ -17,13 +17,7 @@ import { View, Text, StyleSheet, ScrollView, Button, Alert, PermissionsAndroid, 
 import { toastConfig } from '@/components/myComp/TostaConfig';
 import * as Notifications from "expo-notifications";
 import * as SecureStore from 'expo-secure-store';
-import {
-  getMessaging,
-  getToken,
-  onMessage,
-  getInitialNotification,
-  onNotificationOpenedApp,
-} from '@react-native-firebase/messaging';
+import messaging from '@react-native-firebase/messaging';
 
 
 export { ErrorBoundary } from 'expo-router';
@@ -225,39 +219,76 @@ export default function RootLayout() {
   }
 
   useEffect(() => {
-    const messaging = getMessaging();
-    let unsubscribeMessage: (() => void) | undefined;
+    let unsubscribeForeground: (() => void) | undefined;
 
     const initFCM = async () => {
-      const permission = await requestUserPermission();
+      const hasPermission = await requestUserPermission();
 
-      if (permission) {
-        const token = await getToken(messaging);
-        AsyncStorage.setItem("fcmToken", token);
-        console.log("📱 FCM Token:", token);
+      if (!hasPermission) {
+        console.log("🚫 Notification permissions not granted.");
+        return;
       }
 
-      // Foreground messages
-      unsubscribeMessage = onMessage(messaging, async (remoteMessage) => {
-        Alert.alert("New Message", JSON.stringify(remoteMessage));
-      });
+      try {
+        // 2. CRITICAL: Register the device for remote messages first.
+        // This is the most common fix for SERVICE_NOT_AVAILABLE on physical devices.
+        if (!messaging().isDeviceRegisteredForRemoteMessages) {
+          await messaging().registerDeviceForRemoteMessages();
+        }
 
-      // App opened from quit
-      const initial = await getInitialNotification(messaging);
-      if (initial) {
-        console.log("App opened from quit:", initial.notification);
+        // 3. Get the token using the native instance method
+        const token = await messaging().getToken();
+
+        if (token) {
+          await AsyncStorage.setItem("fcmToken", token);
+          console.log("📱 FCM Token:", token);
+
+          // If socket is already connected, you might want to update it here
+          if (socket.connected) {
+            socket.auth = { ...socket.auth, fcmToken: token };
+          }
+        }
+      } catch (error: any) {
+        console.error("❌ Failed to fetch FCM token:", error.message);
+
+        // 4. Retry Logic: If service is unavailable, try again once after 5 seconds
+        if (error.message.includes('SERVICE_NOT_AVAILABLE')) {
+          console.log("🔄 Service busy, retrying in 5 seconds...");
+          setTimeout(initFCM, 5000);
+        }
       }
 
-      // App opened from background
-      onNotificationOpenedApp(messaging, (remoteMessage) => {
-        console.log("App opened from background:", remoteMessage.notification);
+      // --- Notification Listeners ---
+
+      // Foreground: When the app is open and in view
+      unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
+        console.log("📩 Foreground Message:", remoteMessage);
+        Alert.alert(
+          remoteMessage.notification?.title || "New Message",
+          remoteMessage.notification?.body || ""
+        );
       });
+
+      // Background/Quit State: When the app is opened via a notification
+      messaging().onNotificationOpenedApp((remoteMessage) => {
+        console.log("📩 App opened from background:", remoteMessage.notification);
+        if (remoteMessage.data?.id) {
+          router.push(`/(chat)/${remoteMessage.data.id}`);
+        }
+      });
+
+      // Check if the app was opened from a "Quit" state via notification
+      const initialNotification = await messaging().getInitialNotification();
+      if (initialNotification) {
+        console.log("📩 App opened from quit state:", initialNotification.notification);
+        // Handle navigation here if needed
+      }
     };
 
     initFCM();
 
     return () => {
-      if (unsubscribeMessage) unsubscribeMessage();
+      if (unsubscribeForeground) unsubscribeForeground();
     };
   }, []);
 

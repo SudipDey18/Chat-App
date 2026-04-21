@@ -1,14 +1,14 @@
-import { StyleSheet, Text, View, TextInput, TouchableOpacity, Alert, KeyboardAvoidingView, Platform, ScrollView, Pressable, ActivityIndicator, BackHandler } from 'react-native'
-import React, { useEffect, useState } from 'react'
-import { useRouter } from 'expo-router'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { askOtp, updateProfile, verifyOtp } from '@/Api/api'
-import { useUserStore } from '@/store/userStore'
-import Toast from 'react-native-toast-message'
 import { generateKeyPair } from '@/helper/encryption'
-import * as SecureStore from 'expo-secure-store';
-import { FontAwesome6 } from '@expo/vector-icons';
-import * as Clipboard from 'expo-clipboard';
+import { useUserStore } from '@/store/userStore'
+import { FontAwesome6 } from '@expo/vector-icons'
+import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as Clipboard from 'expo-clipboard'
+import { useRouter } from 'expo-router'
+import * as SecureStore from 'expo-secure-store'
+import React, { useEffect, useState } from 'react'
+import { ActivityIndicator, Alert, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import Toast from 'react-native-toast-message'
 
 const Login = () => {
     const router = useRouter()
@@ -151,7 +151,7 @@ const Login = () => {
                 setContactLoading(true);
                 // console.log(await SecureStore.setItemAsync('privateKey', p_key));
                 const privateKey = await SecureStore.getItemAsync('privateKey');
-                console.log("🔑 key: ", privateKey);
+                // console.log("🔑 key: ", privateKey);
                 setUserData({ id: apiRes.userId, name: apiRes.name, token: apiRes.token, privateKey: privateKey || "", publicKey: apiRes.publicKey });
                 await AsyncStorage.setItem('token', apiRes.token);
                 await AsyncStorage.setItem('userId', apiRes.userId);
@@ -361,7 +361,8 @@ const Login = () => {
                                             fontSize: 13,
                                             fontWeight: 'bold',
                                             flexShrink: 0,
-                                            width: 'auto'
+                                            width: 'auto',
+                                            color: "#1507b1ff"
                                         }}
                                     >
                                         {key}

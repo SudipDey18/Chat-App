@@ -23,8 +23,8 @@ async function request(endpoint: string, method: string, body?: object) {
         }
 
         return data;
-    } catch (error:any) {
-        Alert.alert("API Error:", error.message);
+    } catch (error: any) {
+        // Alert.alert("API Error:", error.message);
         throw error;
     }
 }
@@ -37,8 +37,8 @@ export function verifyOtp(mobileNo: string, otp: string) {
     return request("/api/user/verifyotp", "PUT", { mobileNo, otp });
 }
 
-export function updateProfile(mobileNo: string, name: string, username: string, publicKey:string) {
-    return request("/api/user/updateprofile", "PUT", { mobileNo, name, username,publicKey });
+export function updateProfile(mobileNo: string, name: string, username: string, publicKey: string) {
+    return request("/api/user/updateprofile", "PUT", { mobileNo, name, username, publicKey });
 }
 
 export function getContacts() {
@@ -51,4 +51,16 @@ export function getMessages(receiver: string) {
 
 export function searchContact(name: string) {
     return request(`/api/message/searchname?name=${name}`, "get");
+}
+
+export function getCreatedRooms() {
+    return request(`/api/privateChat/getRooms`, "get");
+}
+
+export function deletePrivateRoom(id: string) {
+    return request(`/api/privateChat/room/${id}`, "delete");
+}
+
+export function createPrivateRoom(name: string) {
+    return request(`/api/privateChat/create`, "post", { name });
 }

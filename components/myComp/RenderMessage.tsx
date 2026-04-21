@@ -20,11 +20,11 @@ type message = {
     createdAt: string;
 }
 
-export const RenderMessage = memo(function ({ item }: { item: message }) {
+export const RenderMessage = memo(function ({ item, prev }: { item: message, prev: message }) {
     const [decrypted, setDecrypted] = useState("");
     const loginUser = useUserStore(s => s.user);
 
-    
+
     const isCurrentUser = loginUser.id === item.sender._id;
 
     useEffect(() => {
@@ -37,42 +37,51 @@ export const RenderMessage = memo(function ({ item }: { item: message }) {
             setDecrypted(text);
         }
         decryptMsg();
+
     }, []);
 
     return (
-        <View style={[
-            styles.messageContainer,
-            isCurrentUser ? styles.rightMessage : styles.leftMessage
-        ]} >
-            {!isCurrentUser && (
-                <Image
-                    source={{ uri: `https://avatar.iran.liara.run/public/boy?username=${item.sender.name}` }}
-                    style={styles.avatar}
-                />
-            )}
-
+        <>
             <View style={[
-                styles.messageBubble,
-                isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble
-            ]}>
-                <Text style={[
-                    styles.messageText,
-                    isCurrentUser ? styles.currentUserText : styles.otherUserText
+                styles.messageContainer,
+                isCurrentUser ? styles.rightMessage : styles.leftMessage
+            ]} >
+                {!isCurrentUser && (
+                    <Image
+                        source={{ uri: `https://avatar.iran.liara.run/public/boy?username=${item.sender.name}` }}
+                        style={styles.avatar}
+                    />
+                )}
+
+                <View style={[
+                    styles.messageBubble,
+                    isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble
                 ]}>
-                    {decrypted}
-                </Text>
-                <Text style={styles.timestamp}>
-                    {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </Text>
+                    <Text style={[
+                        styles.messageText,
+                        isCurrentUser ? styles.currentUserText : styles.otherUserText
+                    ]}>
+                        {decrypted}
+                    </Text>
+                    <Text style={styles.timestamp}>
+                        {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </Text>
+                </View>
+
+                {isCurrentUser && (
+                    <Image
+                        source={{ uri: `https://avatar.iran.liara.run/public/boy?username=${item.sender.name}` }}
+                        style={styles.avatar}
+                    />
+                )}
             </View>
 
-            {isCurrentUser && (
-                <Image
-                    source={{ uri: `https://avatar.iran.liara.run/public/boy?username=${item.sender.name}` }}
-                    style={styles.avatar}
-                />
+            {(!prev || new Date(item.createdAt).toDateString() !== new Date(prev.createdAt).toDateString()) && (
+                <View style={styles.dateMain}>
+                    <Text style={styles.dateContainer}>{new Date(Date.now()).toDateString() === new Date(item.createdAt).toDateString() ? "Today":new Date(item.createdAt).toDateString()}</Text>
+                </View>
             )}
-        </View>
+        </>
     );
 });
 
@@ -82,6 +91,19 @@ const styles = StyleSheet.create({
         marginVertical: 5,
         marginHorizontal: 10,
         alignItems: 'flex-end'
+    },
+    dateMain: {
+        display: 'flex',
+        alignItems: 'center'
+    },
+    dateContainer: {
+        paddingHorizontal: 10,
+        paddingVertical: 3,
+        fontSize: 11,
+        textAlign: 'center',
+        borderRadius: 20,
+        backgroundColor: '#a7a6a6ff',
+        fontWeight: '600'
     },
     leftMessage: {
         justifyContent: 'flex-start'

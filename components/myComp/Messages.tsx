@@ -95,7 +95,7 @@ export default function Messages({ chatMessages }: { chatMessages: message[] }) 
       <ImageBackground source={require('../../assets/images/bg.png')} style={styles.backgroundImage} imageStyle={{ opacity: 0.8 }}>
         <FlatList
           data={messages}
-          renderItem={({ item }) => <RenderMessage item={item} />}
+          renderItem={({ item, index }) => <RenderMessage item={item} prev={messages[index+1] || null} />}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
           inverted
