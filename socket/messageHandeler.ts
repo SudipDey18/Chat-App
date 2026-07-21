@@ -2,6 +2,7 @@ import { useMessagesStore } from "@/store/messageStore";
 import { useRoomStore } from "@/store/roomStore";
 import { useUserStore } from "@/store/userStore";
 import * as Notifications from "expo-notifications";
+import { createAudioPlayer } from "expo-audio";
 
 type sender = {
   _id: string;
@@ -17,6 +18,16 @@ type message = {
   reciverMsg: string;
   senderMsg: string;
   createdAt: string;
+};
+
+const notificationPlayer = createAudioPlayer(
+  require("../assets/audio/notification.mp3"),
+);
+
+const messageSentAlert = () => {
+  // console.log(notificationPlayer);
+  notificationPlayer.seekTo(0);
+  notificationPlayer.play();
 };
 
 export const newMessageHandel = async (data: message) => {
@@ -39,6 +50,7 @@ export const newMessageHandel = async (data: message) => {
 
   if (room.roomId == data.roomId) {
     if (loginUserId == sender._id) {
+      messageSentAlert();
       updateMessages(
         messages.map((item) => {
           if (item._id == oldId) {
@@ -73,6 +85,7 @@ export const newMessageHandel = async (data: message) => {
         },
         trigger: null,
       });
+    } else {
     }
   }
 };

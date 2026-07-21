@@ -7,4 +7,7 @@ android
 ios
 node_modules
 .expo
+google-services.json
+my-release-key.keystore
+setup.md
 # @end expo-cli
