@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "799270790196",
+    "project_id": "chatapp-sudip",
+    "storage_bucket": "chatapp-sudip.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:799270790196:android:ff23379cd85485637bd661",
+        "android_client_info": {
+          "package_name": "com.chatapp.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDS6QMFBIlv8IYMPW3UH_J3HOz6_F-y7rU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

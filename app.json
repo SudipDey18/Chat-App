@@ -2,7 +2,7 @@
   "expo": {
     "name": "CHAT-APP",
     "slug": "chat-app",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/AppIcons/playstore.png",
     "scheme": "chatapp",
@@ -22,7 +22,6 @@
         "foregroundImage": "./assets/images/AppIcons/playstore.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.chatapp.app",
       "googleServicesFile": "./google-services.json"
@@ -35,7 +34,10 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      "expo-web-browser"
+      "expo-web-browser",
+      "expo-font",
+      "expo-splash-screen",
+      "expo-status-bar"
     ],
     "experiments": {
       "typedRoutes": true

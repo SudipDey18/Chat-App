@@ -1,41 +1,60 @@
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
-import { router, Stack, useRootNavigationState } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect, Component, useRef } from 'react';
-import { useColorScheme } from '@/components/useColorScheme';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { socket } from '@/socket/socket';
-import { useContactsStore } from '@/store/contactsStore';
-import { getContacts } from '@/Api/api';
-import { newMessageHandel } from '@/socket/messageHandeler';
-import { useUserStore } from '@/store/userStore';
-import Toast from 'react-native-toast-message';
-import { newRoomHandel } from '@/socket/roomHandeler';
-import { View, Text, StyleSheet, ScrollView, Button, Alert, PermissionsAndroid, Platform } from 'react-native';
-import { toastConfig } from '@/components/myComp/TostaConfig';
+import {
+  DarkTheme,
+  DefaultTheme,
+  ThemeProvider,
+} from "expo-router/react-navigation";
+import { router, Stack, useRootNavigationState } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { useEffect, Component, useRef } from "react";
+import { useColorScheme } from "@/components/useColorScheme";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { socket } from "@/socket/socket";
+import { useContactsStore } from "@/store/contactsStore";
+import { getContacts } from "@/Api/api";
+import { newMessageHandel } from "@/socket/messageHandeler";
+import { useUserStore } from "@/store/userStore";
+import Toast from "react-native-toast-message";
+import { newRoomHandel } from "@/socket/roomHandeler";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  Button,
+  Alert,
+  PermissionsAndroid,
+  Platform,
+} from "react-native";
+import { toastConfig } from "@/components/myComp/TostaConfig";
 import * as Notifications from "expo-notifications";
-import * as SecureStore from 'expo-secure-store';
-import messaging from '@react-native-firebase/messaging';
+import * as SecureStore from "expo-secure-store";
+// import messaging from "@react-native-firebase/messaging";
+import { getApp } from "@react-native-firebase/app";
+import {
+  getMessaging,
+  isDeviceRegisteredForRemoteMessages,
+  registerDeviceForRemoteMessages,
+  getToken,
+  onNotificationOpenedApp,
+  onMessage,
+  getInitialNotification,
+} from "@react-native-firebase/messaging";
+import { useRoomStore } from "@/store/roomStore";
 
-
-export { ErrorBoundary } from 'expo-router';
-
+export { ErrorBoundary } from "expo-router";
 
 export const unstable_settings = {
-  initialRouteName: 'index',
+  initialRouteName: "index",
 };
 
-
 SplashScreen.preventAutoHideAsync();
-
 
 type Participant = {
   _id: string;
   name: string;
 };
-
 
 type Contact = {
   _id: string;
@@ -61,13 +80,15 @@ Notifications.setNotificationHandler({
   }),
 });
 
-
 // Custom ErrorBoundary Component
-class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class AppErrorBoundary extends Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   state: ErrorBoundaryState = {
     hasError: false,
     error: null,
-    errorInfo: null
+    errorInfo: null,
   };
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
@@ -75,8 +96,8 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
   }
 
   componentDidCatch(error: Error, errorInfo: any) {
-    console.error('❌ Error Boundary Caught:', error);
-    console.error('📋 Error Info:', errorInfo);
+    console.error("❌ Error Boundary Caught:", error);
+    console.error("📋 Error Info:", errorInfo);
   }
 
   resetError = () => {
@@ -90,12 +111,12 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
           <View style={styles.errorContent}>
             <Text style={styles.errorTitle}>⚠️ Something went wrong</Text>
             <Text style={styles.errorMessage}>
-              {this.state.error?.message || 'Unknown error occurred'}
+              {this.state.error?.message || "Unknown error occurred"}
             </Text>
 
             <ScrollView style={styles.errorStack}>
               <Text style={styles.errorStackText}>
-                {this.state.error?.stack || 'No stack trace available'}
+                {this.state.error?.stack || "No stack trace available"}
               </Text>
             </ScrollView>
 
@@ -111,25 +132,24 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
   }
 }
 
-
 export default function RootLayout() {
-  const setAllContacts = useContactsStore(s => s.addAllContacts);
-  const setUserData = useUserStore(s => s.setUser);
-  const userToken = useUserStore(s => s.user.token);
+  const setAllContacts = useContactsStore((s) => s.addAllContacts);
+  const setUserData = useUserStore((s) => s.setUser);
+  const userToken = useUserStore((s) => s.user.token);
+  const setRoom = useRoomStore((s) => s.setRoom);
 
   const rootNavigationState = useRootNavigationState();
   const lastHandledNotificationIdRef = useRef<string | null>(null);
 
   async function initialLoding() {
     try {
-      let token = await AsyncStorage.getItem("token") || "";
-      let id = await AsyncStorage.getItem('userId') || "";
-      let name = await AsyncStorage.getItem('name') || "";
-      let publicKey = await AsyncStorage.getItem('publicKey') || "";
-      let privateKey = await SecureStore.getItemAsync('privateKey') || "";
+      let token = (await AsyncStorage.getItem("token")) || "";
+      let id = (await AsyncStorage.getItem("userId")) || "";
+      let name = (await AsyncStorage.getItem("name")) || "";
+      let publicKey = (await AsyncStorage.getItem("publicKey")) || "";
+      let privateKey = (await SecureStore.getItemAsync("privateKey")) || "";
 
-
-      console.log('🔑 Token loaded:', token ? 'Present' : 'Missing');
+      console.log("🔑 Token loaded:", token ? "Present" : "Missing");
 
       if (!userToken) {
         setUserData({ id, name, token, publicKey, privateKey });
@@ -137,25 +157,25 @@ export default function RootLayout() {
 
       if (token) {
         try {
-          console.log('📞 Fetching contacts...');
+          console.log("📞 Fetching contacts...");
           const apiRes = await getContacts();
           setAllContacts(apiRes.rooms);
 
           apiRes.rooms.forEach((item: Contact) => {
             socket.emit("joinRoom", item._id);
           });
-          console.log('✅ Contacts loaded successfully');
+          console.log("✅ Contacts loaded successfully");
         } catch (error) {
           console.error("❌ Failed to load contacts:", error);
         }
       } else {
-        console.log('🔄 No token, redirecting to login');
+        console.log("🔄 No token, redirecting to login");
       }
     } catch (error) {
-      console.error('❌ Error in initialLoding:', error);
+      console.error("❌ Error in initialLoding:", error);
     } finally {
       await SplashScreen.hideAsync();
-      console.log('👋 Splash screen hidden');
+      console.log("👋 Splash screen hidden");
     }
   }
 
@@ -165,12 +185,12 @@ export default function RootLayout() {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
           {
-            title: 'Notification Permission',
-            message: 'App needs notification access to send you updates',
-            buttonNeutral: 'Ask Me Later',
-            buttonNegative: 'Cancel',
-            buttonPositive: 'OK',
-          }
+            title: "Notification Permission",
+            message: "App needs notification access to send you updates",
+            buttonNeutral: "Ask Me Later",
+            buttonNegative: "Cancel",
+            buttonPositive: "OK",
+          },
         );
 
         if (granted === PermissionsAndroid.RESULTS.GRANTED) {
@@ -183,7 +203,6 @@ export default function RootLayout() {
       }
       console.log("📌 Android <13: Permissions granted by default");
       return true;
-
     } catch (error) {
       console.log("🔥 Permission error:", error);
       return false;
@@ -203,8 +222,8 @@ export default function RootLayout() {
           console.log("📡 Socket connected:", socket.id);
         });
 
-        socket.on('receiveMessage', newMessageHandel);
-        socket.on('receiveRoom', newRoomHandel);
+        socket.on("receiveMessage", newMessageHandel);
+        socket.on("receiveRoom", newRoomHandel);
 
         socket.on("disconnect", () => {
           console.log("❌ Socket disconnected");
@@ -213,10 +232,10 @@ export default function RootLayout() {
 
       await initialLoding();
     } catch (error) {
-      console.error('❌ Error in connectSocket:', error);
+      console.error("❌ Error in connectSocket:", error);
       await initialLoding();
     }
-  }
+  };
 
   useEffect(() => {
     let unsubscribeForeground: (() => void) | undefined;
@@ -229,15 +248,16 @@ export default function RootLayout() {
         return;
       }
 
+      const app = getApp();
+      const messaging = getMessaging(app);
+
       try {
-        // 2. CRITICAL: Register the device for remote messages first.
-        // This is the most common fix for SERVICE_NOT_AVAILABLE on physical devices.
-        if (!messaging().isDeviceRegisteredForRemoteMessages) {
-          await messaging().registerDeviceForRemoteMessages();
+        if (!isDeviceRegisteredForRemoteMessages(messaging)) {
+          await registerDeviceForRemoteMessages(messaging);
         }
 
         // 3. Get the token using the native instance method
-        const token = await messaging().getToken();
+        const token = await getToken(messaging);
 
         if (token) {
           await AsyncStorage.setItem("fcmToken", token);
@@ -252,7 +272,7 @@ export default function RootLayout() {
         console.error("❌ Failed to fetch FCM token:", error.message);
 
         // 4. Retry Logic: If service is unavailable, try again once after 5 seconds
-        if (error.message.includes('SERVICE_NOT_AVAILABLE')) {
+        if (error.message.includes("SERVICE_NOT_AVAILABLE")) {
           console.log("🔄 Service busy, retrying in 5 seconds...");
           setTimeout(initFCM, 5000);
         }
@@ -261,26 +281,29 @@ export default function RootLayout() {
       // --- Notification Listeners ---
 
       // Foreground: When the app is open and in view
-      unsubscribeForeground = messaging().onMessage(async (remoteMessage) => {
+      unsubscribeForeground = onMessage(messaging, async (remoteMessage) => {
         console.log("📩 Foreground Message:", remoteMessage);
         Alert.alert(
           remoteMessage.notification?.title || "New Message",
-          remoteMessage.notification?.body || ""
+          remoteMessage.notification?.body || "",
         );
       });
 
       // Background/Quit State: When the app is opened via a notification
-      messaging().onNotificationOpenedApp((remoteMessage) => {
-        console.log("📩 App opened from background:", remoteMessage.notification);
-        if (remoteMessage.data?.id) {
-          router.push(`/(chat)/${remoteMessage.data.id}`);
-        }
+      onNotificationOpenedApp(messaging, (remoteMessage) => {
+        console.log(
+          "📩 App opened from background:",
+          remoteMessage.notification,
+        );
       });
 
       // Check if the app was opened from a "Quit" state via notification
-      const initialNotification = await messaging().getInitialNotification();
+      const initialNotification = await getInitialNotification(messaging);
       if (initialNotification) {
-        console.log("📩 App opened from quit state:", initialNotification.notification);
+        console.log(
+          "📩 App opened from quit state:",
+          initialNotification.notification,
+        );
         // Handle navigation here if needed
       }
     };
@@ -296,7 +319,7 @@ export default function RootLayout() {
     if (!rootNavigationState?.key) return;
 
     const handleResponse = (
-      response: Notifications.NotificationResponse | null
+      response: Notifications.NotificationResponse | null,
     ) => {
       if (!response) return;
 
@@ -311,6 +334,13 @@ export default function RootLayout() {
       console.log("📩 Notification Clicked:", data);
 
       if (data?.newMessage && data?.id) {
+        setRoom({
+          reciverId: String(data.id),
+          roomId: String(data.roomId),
+          reciverName: String(data.name),
+          publicKey: "",
+        });
+
         setTimeout(() => {
           router.push(`/(chat)/${data.id}`);
         }, 100);
@@ -320,15 +350,13 @@ export default function RootLayout() {
     const lastResponse = Notifications.getLastNotificationResponse();
     handleResponse(lastResponse);
 
-    const sub = Notifications.addNotificationResponseReceivedListener(
-      handleResponse
-    );
+    const sub =
+      Notifications.addNotificationResponseReceivedListener(handleResponse);
 
     return () => {
       sub.remove();
     };
   }, [rootNavigationState?.key]);
-
 
   useEffect(() => {
     connectSocket();
@@ -349,12 +377,11 @@ export default function RootLayout() {
   );
 }
 
-
 function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <SafeAreaView style={{ flex: 1 }}>
         <StatusBar hidden />
         <Stack screenOptions={{ headerShown: false }} />
@@ -364,21 +391,20 @@ function RootLayoutNav() {
   );
 }
 
-
 const styles = StyleSheet.create({
   errorContainer: {
     flex: 1,
-    backgroundColor: '#f8f9fa',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#f8f9fa",
+    justifyContent: "center",
+    alignItems: "center",
   },
   errorContent: {
-    width: '90%',
+    width: "90%",
     maxWidth: 400,
     padding: 20,
-    backgroundColor: 'white',
+    backgroundColor: "white",
     borderRadius: 10,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
@@ -386,28 +412,28 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 24,
-    fontWeight: 'bold',
-    color: '#dc3545',
+    fontWeight: "bold",
+    color: "#dc3545",
     marginBottom: 10,
-    textAlign: 'center',
+    textAlign: "center",
   },
   errorMessage: {
     fontSize: 16,
-    color: '#333',
+    color: "#333",
     marginBottom: 15,
-    textAlign: 'center',
+    textAlign: "center",
   },
   errorStack: {
     maxHeight: 200,
-    backgroundColor: '#f1f3f5',
+    backgroundColor: "#f1f3f5",
     padding: 10,
     borderRadius: 5,
     marginBottom: 20,
   },
   errorStackText: {
     fontSize: 12,
-    color: '#666',
-    fontFamily: 'monospace',
+    color: "#666",
+    fontFamily: "monospace",
   },
   buttonContainer: {
     marginTop: 10,

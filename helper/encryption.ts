@@ -1,16 +1,27 @@
-import {RSA} from 'react-native-rsa-native'
+import { generateKeyPairSync } from "react-native-quick-crypto";
 
 export async function generateKeyPair() {
-  try {    
-    const keys = await RSA.generateKeys(2048);
-    
-    console.log('✅ Keys generated successfully');
+  try {
+    const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+      modulusLength: 2048,
+      publicKeyEncoding: {
+        type: "spki",
+        format: "pem",
+      },
+      privateKeyEncoding: {
+        type: "pkcs8",
+        format: "pem",
+      },
+    });
+
+    console.log("✅ Keys generated successfully");
+
     return {
-      publicKey: keys.public,
-      privateKey: keys.private
+      publicKey,
+      privateKey,
     };
   } catch (error) {
-    console.error('❌ Key generation failed:', error);
+    console.error("❌ Key generation failed:", error);
     throw error;
   }
 }
