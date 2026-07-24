@@ -4,9 +4,13 @@ import { Image } from "react-native";
 import { StyleSheet } from "react-native";
 import { Text } from "react-native";
 import { View } from "react-native";
+import { MenuView, NativeActionEvent } from "@expo/ui/community/menu";
 // import { RSA } from "react-native-rsa-native";
 import { privateDecrypt } from "react-native-quick-crypto";
 import { Buffer } from "buffer";
+import { Icon } from "@expo/ui";
+import * as Clipboard from "expo-clipboard";
+import Toast from "react-native-toast-message";
 
 type sender = {
   _id: string;
@@ -31,6 +35,32 @@ export const RenderMessage = memo(function ({
 }) {
   const [decrypted, setDecrypted] = useState("");
   const loginUser = useUserStore((s) => s.user);
+  const [isSelect, setIsSelect] = useState(false);
+
+  const copy = Icon.select({
+    ios: "clipboard",
+    android: import("@expo/material-symbols/content_copy.xml"),
+  });
+
+  const copyMessage = async () => {
+    await Clipboard.setStringAsync(decrypted);
+
+    Toast.show({
+      type: "success",
+      text1: "Message copy successfully.",
+    });
+  };
+
+  const handleMenuClick = (e: NativeActionEvent) => {
+    let option = e.nativeEvent.event;
+    switch (option) {
+      case "copy":
+        copyMessage();
+        break;
+      default:
+        console.log("Invalid option select");
+    }
+  };
 
   const isCurrentUser = loginUser.id === item.sender._id;
 
@@ -48,52 +78,71 @@ export const RenderMessage = memo(function ({
 
   return (
     <>
-      <View
-        style={[
-          styles.messageContainer,
-          isCurrentUser ? styles.rightMessage : styles.leftMessage,
+      <MenuView
+        shouldOpenOnLongPress
+        actions={[
+          // { id: "edit", title: "Edit" },
+          { id: "copy", title: "Copy", image: copy, imageColor: "blue" },
         ]}
+        onPressAction={handleMenuClick}
+        onOpenMenu={() => setIsSelect(true)}
+        onCloseMenu={() => setIsSelect(false)}
       >
-        {!isCurrentUser && (
-          <Image
-            source={{
-              uri: `https://api.dicebear.com/10.x/adventurer-neutral/png?seed=${item.sender.name}`,
-            }}
-            style={styles.avatar}
-          />
-        )}
-
         <View
           style={[
-            styles.messageBubble,
-            isCurrentUser ? styles.currentUserBubble : styles.otherUserBubble,
+            styles.messageContainer,
+            isCurrentUser ? styles.rightMessage : styles.leftMessage,
           ]}
         >
-          <Text
+          {!isCurrentUser && (
+            <Image
+              source={{
+                uri: `https://api.dicebear.com/10.x/adventurer-neutral/png?seed=${item.sender.name}`,
+              }}
+              style={styles.avatar}
+            />
+          )}
+
+          <View
             style={[
-              styles.messageText,
-              isCurrentUser ? styles.currentUserText : styles.otherUserText,
+              styles.messageBubble,
+              isSelect
+                ? styles.selectMessageBubble
+                : isCurrentUser
+                  ? styles.currentUserBubble
+                  : styles.otherUserBubble,
             ]}
           >
-            {decrypted}
-          </Text>
-          <Text style={styles.timestamp}>
-            {new Date(item.createdAt).toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </Text>
-        </View>
+            <Text
+              style={[
+                styles.messageText,
+                isSelect
+                  ? styles.selectMessage
+                  : isCurrentUser
+                    ? styles.currentUserText
+                    : styles.otherUserText,
+              ]}
+            >
+              {decrypted}
+            </Text>
+            <Text style={styles.timestamp}>
+              {new Date(item.createdAt).toLocaleTimeString([], {
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </Text>
+          </View>
 
-        {isCurrentUser && (
-          <Image
-            source={{
-              uri: `https://api.dicebear.com/10.x/adventurer-neutral/png?seed=${item.sender.name}`,
-            }}
-            style={styles.avatar}
-          />
-        )}
-      </View>
+          {isCurrentUser && (
+            <Image
+              source={{
+                uri: `https://api.dicebear.com/10.x/adventurer-neutral/png?seed=${item.sender.name}`,
+              }}
+              style={styles.avatar}
+            />
+          )}
+        </View>
+      </MenuView>
 
       {(!prev ||
         new Date(item.createdAt).toDateString() !==
@@ -137,6 +186,10 @@ const styles = StyleSheet.create({
   rightMessage: {
     justifyContent: "flex-end",
   },
+  selectMessageBubble: {
+    backgroundColor: "rgba(232,121,143,0.8)",
+    borderBottomLeftRadius: 5,
+  },
   currentUserBubble: {
     backgroundColor: "#AEFCD7",
     borderBottomRightRadius: 5,
@@ -147,6 +200,9 @@ const styles = StyleSheet.create({
   },
   messageText: {
     fontSize: 16,
+  },
+  selectMessage: {
+    color: "#445696",
   },
   currentUserText: {
     color: "#000",

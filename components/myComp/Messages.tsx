@@ -20,6 +20,29 @@ import { useKeyboardOffset } from "@/hooks/useKeyboardOffset";
 import { publicEncrypt } from "react-native-quick-crypto";
 import { Buffer } from "buffer";
 import { RenderMessage } from "./RenderMessage";
+import { Icon } from "@expo/ui";
+import { MenuView } from "@expo/ui/community/menu";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+
+const camera = Icon.select({
+  ios: "camera",
+  android: import("@expo/material-symbols/photo_camera.xml"),
+});
+
+const addPhoto = Icon.select({
+  ios: "photo.badge.plus",
+  android: import("@expo/material-symbols/add_photo_alternate.xml"),
+});
+
+const addFile = Icon.select({
+  ios: "text.page",
+  android: import("@expo/material-symbols/attach_file_add.xml"),
+});
+
+const addAudio = Icon.select({
+  ios: "music.note",
+  android: import("@expo/material-symbols/music_note_add.xml"),
+});
 
 type sender = {
   _id: string;
@@ -139,6 +162,27 @@ export default function Messages({
         />
 
         <View style={styles.inputContainer}>
+          <MenuView
+            style={{
+              height: 40,
+              width: 40,
+              borderRadius: 7,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "gray",
+              marginRight: 10,
+            }}
+            actions={[
+              { id: "camera", title: "Camera", image: camera },
+              { id: "image", title: "Image", image: addPhoto },
+              { id: "audio", title: "audio", image: addAudio },
+              { id: "file", title: "File", image: addFile },
+            ]}
+            onPressAction={(e) => console.log(e.nativeEvent.event)}
+          >
+            <MaterialIcons name="attach-file" size={32} color="black" />
+          </MenuView>
           <TextInput
             style={styles.textInput}
             placeholder="Type a message..."
