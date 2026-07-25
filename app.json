@@ -50,6 +50,23 @@
         {
           "iCloudContainerEnvironment": "Production"
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow chatapp to access your camera",
+          "microphonePermission": "Allow chatapp to access your microphone",
+          "recordAudioAndroid": true,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-navigation-bar",
+        {
+          "enforceContrast": true,
+          "hidden": false,
+          "style": "light"
+        }
       ]
     ],
     "experiments": {

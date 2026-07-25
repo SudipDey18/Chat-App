@@ -3,26 +3,37 @@ import {
   StyleSheet,
   View,
   FlatList,
-  Image,
   TextInput,
   TouchableOpacity,
   ImageBackground,
   Animated,
+  Modal,
 } from "react-native";
-import React, { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useFocusEffect, useLocalSearchParams } from "expo-router";
 import { socket } from "@/socket/socket";
 import { useRoomStore } from "@/store/roomStore";
 import { useUserStore } from "@/store/userStore";
 import { useMessagesStore } from "@/store/messageStore";
 import { useKeyboardOffset } from "@/hooks/useKeyboardOffset";
+import { useCameraPermissions } from "expo-camera";
 // import { RSA } from "react-native-rsa-native";
 import { publicEncrypt } from "react-native-quick-crypto";
 import { Buffer } from "buffer";
 import { RenderMessage } from "./RenderMessage";
 import { Icon } from "@expo/ui";
-import { MenuView } from "@expo/ui/community/menu";
+import { MenuView, NativeActionEvent } from "@expo/ui/community/menu";
+// import {
+//   Host,
+//   ModalBottomSheet,
+//   Button,
+//   Column,
+// } from "@expo/ui/jetpack-compose";
+// import type { ModalBottomSheetRef } from "@expo/ui/jetpack-compose";
+// import { paddingAll } from "@expo/ui/jetpack-compose/modifiers";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import Toast from "react-native-toast-message";
+import CameraComp from "./CameraComp";
 
 const camera = Icon.select({
   ios: "camera",
@@ -70,6 +81,8 @@ export default function Messages({
   const loginUser = useUserStore((s) => s.user);
   const messages = useMessagesStore((s) => s.messages);
   const setMessages = useMessagesStore((s) => s.setAllMessages);
+  const [cameraPermission, requestCameraPermission] = useCameraPermissions();
+  const [visible, setVisible] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -84,6 +97,12 @@ export default function Messages({
       };
     }, []),
   );
+
+  useEffect(() => {
+    if (!cameraPermission?.granted) {
+      requestCameraPermission();
+    }
+  }, [cameraPermission]);
 
   const handleSendMessage = async () => {
     if (messageText.trim() === "") return;
@@ -139,6 +158,29 @@ export default function Messages({
     );
   };
 
+  const handelCamera = () => {};
+
+  const handelMeanuSelect = (e: NativeActionEvent) => {
+    let option = e.nativeEvent.event;
+    switch (option) {
+      case "camera":
+        console.log("Camera clicked");
+        setVisible(true);
+        break;
+      case "image":
+        break;
+      case "audio":
+        break;
+      case "file":
+        break;
+      default:
+        Toast.show({
+          text1: "Invalid option press",
+          type: "error",
+        });
+    }
+  };
+
   const showSendButton = messageText.trim() !== "";
   const keyboardOffset = useRef(new Animated.Value(0)).current;
 
@@ -179,7 +221,7 @@ export default function Messages({
               { id: "audio", title: "audio", image: addAudio },
               { id: "file", title: "File", image: addFile },
             ]}
-            onPressAction={(e) => console.log(e.nativeEvent.event)}
+            onPressAction={handelMeanuSelect}
           >
             <MaterialIcons name="attach-file" size={32} color="black" />
           </MenuView>
@@ -201,6 +243,18 @@ export default function Messages({
             </TouchableOpacity>
           )}
         </View>
+        <Modal
+          visible={visible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setVisible(false)}
+        >
+          <View style={styles.backdrop}>
+            <View style={styles.sheet}>
+              <CameraComp />
+            </View>
+          </View>
+        </Modal>
       </ImageBackground>
     </Animated.View>
   );
@@ -291,5 +345,17 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "600",
+  },
+  sheet: {
+    height: "90%",
+    backgroundColor: "#ffffff",
+    borderTopLeftRadius: 34,
+    borderTopRightRadius: 34,
+    padding: 20,
+  },
+  backdrop: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
   },
 });
