@@ -34,6 +34,7 @@ import { MenuView, NativeActionEvent } from "@expo/ui/community/menu";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Toast from "react-native-toast-message";
 import CameraComp from "./CameraComp";
+import { KeyboardAvoidingView } from "react-native";
 
 const camera = Icon.select({
   ios: "camera",
@@ -249,11 +250,16 @@ export default function Messages({
           animationType="slide"
           onRequestClose={() => setVisible(false)}
         >
+          {/*<KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+          >*/}
           <View style={styles.backdrop}>
             <View style={styles.sheet}>
               <CameraComp />
             </View>
           </View>
+          {/*</KeyboardAvoidingView>*/}
         </Modal>
       </ImageBackground>
     </Animated.View>

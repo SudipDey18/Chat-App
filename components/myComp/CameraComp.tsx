@@ -11,14 +11,13 @@ import {
   Image,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
+  Keyboard,
 } from "react-native";
-import { NavigationBar } from "expo-navigation-bar";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function CameraComp() {
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -26,6 +25,8 @@ export default function CameraComp() {
   const [flash, setFlash] = useState<FlashMode>("off");
   const cameraRef = useRef<CameraView>(null);
   const [image, setImage] = useState<string>("");
+  const navbar = useSafeAreaInsets().bottom;
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   useEffect(() => {
     if (!cameraPermission?.granted) {
@@ -34,8 +35,18 @@ export default function CameraComp() {
   }, [cameraPermission]);
 
   useEffect(() => {
-    NavigationBar.setHidden(true);
-    return () => NavigationBar.setHidden(false);
+    const show = Keyboard.addListener("keyboardDidShow", (e) => {
+      setKeyboardHeight(e.endCoordinates.height);
+    });
+
+    const hide = Keyboard.addListener("keyboardDidHide", () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      show.remove();
+      hide.remove();
+    };
   }, []);
 
   const handelRotateCamera = () => {
@@ -79,9 +90,9 @@ export default function CameraComp() {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <View
+      style={[styles.container, { marginBottom: navbar - 10 }]}
+      // behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       {!image ? (
         <>
@@ -127,7 +138,9 @@ export default function CameraComp() {
             />
           </View>
 
-          <View style={styles.previewControls}>
+          <View
+            style={[{ marginBottom: keyboardHeight }, styles.previewControls]}
+          >
             {/* Retake Button */}
             <TouchableOpacity
               onPress={() => setImage("")}
@@ -158,7 +171,7 @@ export default function CameraComp() {
           </View>
         </>
       )}
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -191,16 +204,15 @@ const styles = StyleSheet.create({
   },
   camera: {
     flex: 1,
+    borderRadius: 15,
   },
   cameraControls: {
-    height: 120,
-    backgroundColor: "#F8F9FA", // Very soft off-white
+    marginTop: 20,
+    marginBottom: 5,
+    backgroundColor: "#ffffff", // Very soft off-white
     flexDirection: "row",
     justifyContent: "space-around",
-    alignItems: "center",
-    paddingBottom: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#ECECEC", // Subtle separator
+    alignItems: "center", // Subtle separator
   },
   iconButton: {
     width: 55,
@@ -253,8 +265,8 @@ const styles = StyleSheet.create({
   previewControls: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: 5,
+    paddingTop: 5,
     backgroundColor: "#FFFFFF",
     gap: 15,
   },
