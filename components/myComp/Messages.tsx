@@ -35,6 +35,7 @@ import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import Toast from "react-native-toast-message";
 import CameraComp from "./CameraComp";
 import { KeyboardAvoidingView } from "react-native";
+import ImagesComp from "./ImagesComp";
 
 const camera = Icon.select({
   ios: "camera",
@@ -70,6 +71,8 @@ type message = {
   createdAt: string;
 };
 
+type fileOptionType = "image" | "camera" | "audio" | "file" | "";
+
 export default function Messages({
   chatMessages,
 }: {
@@ -84,6 +87,7 @@ export default function Messages({
   const setMessages = useMessagesStore((s) => s.setAllMessages);
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
   const [visible, setVisible] = useState(false);
+  const [fileOption, setFileOption] = useState<fileOptionType>("");
 
   useFocusEffect(
     useCallback(() => {
@@ -159,16 +163,16 @@ export default function Messages({
     );
   };
 
-  const handelCamera = () => {};
-
   const handelMeanuSelect = (e: NativeActionEvent) => {
-    let option = e.nativeEvent.event;
+    let option: fileOptionType = e.nativeEvent.event as fileOptionType;
+    setFileOption(option);
     switch (option) {
       case "camera":
-        console.log("Camera clicked");
         setVisible(true);
         break;
       case "image":
+        setVisible(true);
+        console.log("image clicked");
         break;
       case "audio":
         break;
@@ -248,7 +252,10 @@ export default function Messages({
           visible={visible}
           transparent
           animationType="slide"
-          onRequestClose={() => setVisible(false)}
+          onRequestClose={() => {
+            setVisible(false);
+            setFileOption("");
+          }}
         >
           {/*<KeyboardAvoidingView
             style={{ flex: 1 }}
@@ -256,7 +263,8 @@ export default function Messages({
           >*/}
           <View style={styles.backdrop}>
             <View style={styles.sheet}>
-              <CameraComp />
+              {fileOption === "camera" && <CameraComp />}
+              {fileOption === "image" && <ImagesComp />}
             </View>
           </View>
           {/*</KeyboardAvoidingView>*/}

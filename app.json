@@ -61,11 +61,16 @@
         }
       ],
       [
-        "expo-navigation-bar",
+        "expo-file-system",
         {
-          "enforceContrast": true,
-          "hidden": false,
-          "style": "light"
+          "supportsOpeningDocumentsInPlace": true,
+          "enableFileSharing": true
+        }
+      ],
+      [
+        "expo-document-picker",
+        {
+          "iCloudContainerEnvironment": "Production"
         }
       ]
     ],
